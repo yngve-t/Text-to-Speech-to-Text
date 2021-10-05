@@ -6,6 +6,7 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
@@ -20,37 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
-
-    Locale locale = new Locale("ru-Ru");
+public class MainActivity extends AppCompatActivity{
     EditText et;
 
-    //Текст в речь
-
-    private TextToSpeech tts;
-    boolean ttsEnabled;
-
-    public void speak(String text) {
-        if (!ttsEnabled) return;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ttsGreater21(text);
-        }else {
-            ttsUnder20(text);
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private void ttsUnder20(String text) {
-        HashMap<String, String> map = new HashMap<>();
-        map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "MessageId");
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, map);
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void ttsGreater21(String text) {
-        String utteranceId = this.hashCode() + " ";
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
-    }
 
     //Речь в текст
     private static final int VR_REQUEST = 999;
@@ -89,39 +62,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         et = (EditText) findViewById(R.id.editText);
         Button speakBtn = (Button) findViewById(R.id.speakText);
         Button listerBtn = (Button) findViewById(R.id.listenText);
 
-        //Текст в речь
-        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    if (tts.isLanguageAvailable(new Locale(Locale.getDefault().getLanguage()))
-                            == TextToSpeech.LANG_AVAILABLE) {
-                        tts.setLanguage(locale);        //Установка языка
-                    }else {
-                        tts.setLanguage(Locale.US);
-                    }
-                    tts.setPitch(1f);                    //Не помню, но что-то связанное с речью
-                    tts.setSpeechRate(0.7f);             //Установка темпа речи
-                    tts.setVoice(tts.getDefaultVoice()); //Установка голоса
-                    ttsEnabled = true;
-                }else if (status == TextToSpeech.ERROR) {
-                    Toast.makeText(getApplicationContext(), R.string.tts_error, Toast.LENGTH_LONG).show();
-                    ttsEnabled = false;
-                }
-            }
-        });
+        //-----------------------
 
+        Splash.Speech("alo", 0);
         speakBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                speak(et.getText().toString());
+                Splash.Speech(et.getText().toString(), 0);
             }
         });
+
+        //---------------------------
+
 
         //Речь в текст
         PackageManager packageManager = getPackageManager();
